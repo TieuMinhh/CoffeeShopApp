@@ -1,21 +1,3 @@
-// import react,{Component,useState} from "react";
-// import {
-//     TextInput,
-//     SafeAreaView,
-//     ScrollView,
-//     StyleSheet,
-//     Text,
-//     View,
-//     TouchableOpacity,
-//     Image,
-//     Dimensions,
-//   } from "react-native";
-// import { BlurView } from "expo-blur";
-// import { Ionicons } from "@expo/vector-icons";
-
-// import global from "../../../../global/global";
-import colors from "./colors";
-// import Categories2 from "./Categories2";
 
 import React, { Component } from "react";
 import {
@@ -38,10 +20,10 @@ import axios from "axios";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import ImageCoffee from "./coffees/mainn.jpg";
+import colors from "./colors";
 
-// import DetailProduct from "../../../DetailProduct/";
 
-// var image = Coffee[0].image;
+
 const windowHeight = Dimensions.get("window").height;
 const { width } = Dimensions.get("window");
 export default class Store extends Component {
