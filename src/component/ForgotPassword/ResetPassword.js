@@ -1,36 +1,26 @@
 import React, { Component } from "react";
 import {
-  View,
-  Image,
-  Text,
   StyleSheet,
-  TextInput,
+  Text,
   TouchableOpacity,
+  View,
   SafeAreaView,
-  ScrollView,
+  Image,
+  TextInput,
   ToastAndroid,
 } from "react-native";
-// import Input from "./Input";
-import { Ionicons } from "@expo/vector-icons";
-
-import userServices from "../api/userServices";
-import global from "../../global/global";
-import saveToken from "../../global/saveToken";
-import checkToken from "../../component/api/userServices";
 import { connect } from "react-redux";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import axios from "axios";
-import getToken from "../../global/getToken";
 
-class SignIn extends Component {
+class ResetPassword extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      email: "",
-      password: "",
+      password1: "",
+      password2: "",
     };
   }
-
   quayLai = () => {
     this.props.navigation.goBack();
   };
@@ -39,34 +29,23 @@ class SignIn extends Component {
     this.props.navigation.popToTop();
   };
 
-  onSignIn = async () => {
-    console.log("Thử");
-    const { email, password } = this.state;
-    let data = await userServices.signIn(email, password);
-    console.log(data);
-    console.log("data:", data.userData);
-    await saveToken(data.userData);
-    data = await userServices.checkToken(data.userData);
-    global.onSignIn(data);
-    this.props.signIn(data);
-    console.log("Data bên signIn:", data);
-    //Cart
-    let token = await getToken();
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-    // this.props.setTabBarBadge()
-    let cart = await axios.post("http://192.168.1.5:8081/api/v1/account");
-    this.props.arrGioHang(cart.data.list);
-    //Cart
-    // this.props.diDenMain();
-    ToastAndroid.show("Đăng nhập thành công", ToastAndroid.LONG);
-    this.props.reduxState.history.popToTop();
-    // this.props.reduxState.history.push("MAIN");
+  handleChangePassWord = async () => {
+    const { password1, password2 } = this.state;
+    const id_account = this.props.reduxState.id_account;
+    console.log(password1, password2, id_account);
+    let res = await axios.post(
+      `http://192.168.1.5:8081/api/v1/changepasswordnew/${id_account}`,
+      {
+        newPassword: password1,
+        newPassword2: password2,
+      }
+    );
+    console.log("State: ", res.data);
+    ToastAndroid.show("Tạo mật khẩu mới thành công", ToastAndroid.LONG);
   };
 
   render() {
-    const { email, password } = this.state;
-    console.log("Thí props: ", this.props);
+    const { password1, password2 } = this.state;
     return (
       <SafeAreaView style={styles.main}>
         <View style={styles.goBack}>
@@ -96,67 +75,34 @@ class SignIn extends Component {
           ></Image>
           <View style={styles.wFull}>
             <View style={styles.row}>
-              <Text style={styles.brandName}>Đăng Nhập</Text>
+              <Text style={styles.brandName}>Tạo Mật Khẩu Mới</Text>
             </View>
 
             <TextInput
+              secureTextEntry={true}
               style={styles.input}
-              placeholder="Email"
-              value={email}
-              onChangeText={(text) => this.setState({ email: text })}
+              placeholder="Nhập Mật Khẩu Mới"
+              value={password1}
+              onChangeText={(text) => this.setState({ password1: text })}
             ></TextInput>
             <TextInput
               secureTextEntry={true}
               style={styles.input}
-              placeholder="Mật Khẩu"
-              value={password}
-              onChangeText={(text) => this.setState({ password: text })}
+              placeholder="Nhập Lại Mật Khẩu"
+              value={password2}
+              onChangeText={(text) => this.setState({ password2: text })}
             ></TextInput>
 
             <View style={styles.loginBtnWrapper}>
               <TouchableOpacity
                 // onPress={() => navigation.navigate()}
-                onPress={() => this.onSignIn()}
+                onPress={() => this.handleChangePassWord()}
                 activeOpacity={0.7}
                 style={styles.loginBtn}
               >
-                <Text style={styles.loginText}>Đăng Nhập</Text>
+                <Text style={styles.loginText}>Cập Nhật</Text>
               </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              onPress={() =>
-                this.props.reduxState.history.push("FORGOT_PASSWORD")
-              }
-              style={styles.forgotPassBtn}
-            >
-              <Text style={styles.forgotPassText}>Quên Mật Khẩu?</Text>
-            </TouchableOpacity>
-
-            <View style={{ marginTop: 16 }}>
-              <Text style={styles.socialLogin}>Hoặc Đăng Nhập Bằng</Text>
-
-              <View style={styles.listLogoLogin}>
-                <TouchableOpacity style={styles.logoItem}>
-                  <Ionicons name="logo-google" color="#1F41BB" size={20} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.logoItem}>
-                  <Ionicons name="logo-facebook" color="#1F41BB" size={20} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.logoItem}>
-                  <Ionicons name="logo-github" color="#1F41BB" size={20} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}> Bạn Chưa Có Tài Khoản? </Text>
-            <TouchableOpacity
-              onPress={() => this.props.reduxState.history.push("SIGN_UP")}
-            >
-              <Text style={styles.signupBtn}>Đăng Ký</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>
@@ -177,11 +123,11 @@ const mapDispatchToProps = (dispatch) => {
     history: (history) => dispatch({ type: "history", payload: history }),
     arrGioHang: (arrGioHang) =>
       dispatch({ type: "arrCart", payload: arrGioHang }),
-    signIn: (signIn) => dispatch({ type: "signin", payload: signIn }),
+    signIn: (signIn) => dispatch({ type: "signIn", payload: signIn }),
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(SignIn);
+export default connect(mapStateToProps, mapDispatchToProps)(ResetPassword);
 
 const styles = StyleSheet.create({
   main: {
@@ -220,7 +166,7 @@ const styles = StyleSheet.create({
     // marginTop: -80,
   },
   brandName: {
-    fontSize: 40,
+    fontSize: 36,
     textAlign: "center",
     fontWeight: "bold",
     color: "#1F41BB",

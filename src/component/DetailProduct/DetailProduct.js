@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { Component } from "react";
-
+import { connect } from "react-redux";
 import {
   ImageBackground,
   ScrollView,
@@ -10,58 +10,56 @@ import {
   View,
   TouchableOpacity,
   SafeAreaView,
+  ToastAndroid,
 } from "react-native";
-// import * as Font from 'expo-font';
 import global from "../../global/global";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-
+import getToken from "../../global/getToken";
+import { addCart } from "../../component/api/userServices";
 import colors from "../Main/Shop/Store/colors";
-import coffee from "../Main/Shop/Store/Coffee";
-const sizes = ["S", "M", "L"];
 const { height, width } = Dimensions.get("window");
-import ImageCoffee from "../Main/Shop/Store/coffees/cafechoi.jpg";
-import { TextInput } from "react-native-gesture-handler";
 
-export default class DetailProduct extends Component {
+class DetailProduct extends Component {
   constructor(props) {
     super(props);
     this.state = {
       idproduct: "",
-      quantity: 1,
-      fontLoaded: false,
+      size: 0,
+      listProduct: [],
+      giaSize: 0,
       trangthai: "",
+      quantity: 0,
+      sizeSML: 0,
     };
-    global.id_product = (id_product) => {
-      this.setState(
-        {
-          idproduct: id_product,
-        },
-        console.log(id_product)
-      );
-    };
-  }
-  async componentDidMount() {
-    await Font.loadAsync({
-      "Rosarivo-Regular": require("./path/to/Rosarivo-Regular.ttf"),
-    });
 
-    this.setState({ fontLoaded: true });
-  }
-  async componentDidMount() {
-    global.id_product = (id_product1) => {
+    global.setArrCart = () => {}; //Khai báo cho có
+    global.setArrSearch = (arrSearch) =>
       this.setState(
         {
-          idproduct: id_product1,
+          arr: arrSearch,
         },
-        console.log(id_product1)
+        console.log("No chay vo constructor")
       );
-    };
-    console.log("this.state.id_product", this.state.idproduct);
+    // global.id_product = (id_product) => {
+    //     this.setState(
+    //         {
+    //             idproduct: id_product,
+    //         },
+    //         console.log(id_product)
+    //     );
+    // };
+  }
+
+  async componentDidMount() {
+    // console.log("this.state.id_product", this.props.reduxState.id_product);
     let response = await axios.get(
-      `http://192.168.138.6:8081/api/v1/chiTiet?id=${this.state.idproduct}`
+      `http://192.168.1.5:8081/api/v1/chiTiet?id=${this.props.reduxState.id_product}`
     );
     console.log("Chi tiết sản phẩm:", response.data);
+    this.setState({
+      listProduct: response.data.listProduct,
+    });
   }
 
   handleIncrement = () => {
@@ -74,213 +72,258 @@ export default class DetailProduct extends Component {
     if (quantity > 0) this.setState({ quantity: quantity - 1 });
   };
 
+  handleAddGioHang = async () => {
+    try {
+      let token = await getToken();
+      console.log("Token: ", token);
+      let id_product = this.props.reduxState.id_product;
+      //let response = await handleGetAllUser('ALL');
+      //let response = await handleGetAllUserShop()
+      // if (this.state.quantity === 0)
+      //   ToastAndroid.show("Vui lòng chọn Số lượng", ToastAndroid.SHORT);
+      if (this.state.size > 0) {
+        console.log(id_product, this.state.size, this.state.quantity);
+        if (this.state.quantity > 0) {
+          let response = await addCart(
+            token,
+            id_product,
+            this.state.giaSize,
+            this.state.quantity,
+            this.state.size
+          );
+          let cart = await axios.post("http://192.168.1.5:8081/api/v1/account");
+          console.log("Cart new: ", cart.data);
+          // global.setArrCart(cart.data.list);
+          this.props.arrGioHang(cart.data.list); //redux arr Gio Hang
+          ToastAndroid.show("Đã thêm vào giỏ hàng", ToastAndroid.SHORT);
+          global.setTabBarBadge(cart.data.list.length);
+        } else {
+          ToastAndroid.show("Vui lòng chọn số lượng", ToastAndroid.SHORT);
+        }
+      } else ToastAndroid.show("Vui lòng chọn size", ToastAndroid.SHORT);
+      console.log("hello");
+    } catch (e) {
+      console.log(e, "Lỗi rồi cu ơi");
+    }
+  };
+
   quayLai = () => {
     this.props.navigation.goBack();
   };
 
-  handleaction = (trangthai) => {
-    this.setState({ trangthai: trangthai });
-  };
-  handleAddGioHang = async (id_product) => {
-    try {
-      let token = await getToken();
-      console.log("Token: ", token);
-      //let response = await handleGetAllUser('ALL');
-      //let response = await handleGetAllUserShop()
-      let response = await addCart(token, id_product, 1);
-      let cart = await axios.post("http://192.168.138.6:8081/api/v1/account");
-      global.setArrCart(cart.data.list);
-      global.setTabBarBadge(cart.data.list.length);
-    } catch (e) {
-      console.log(e);
-    }
+  chonSize = (size, giaSize, sizeSML, trangthai) => {
+    this.setState(
+      {
+        size: size,
+        giaSize: giaSize,
+        sizeSML: sizeSML,
+        trangthai: trangthai,
+      },
+      console.log(this.state.size, this.state.giaSize)
+    );
   };
 
   render() {
-    let arrProduct = this.state.arr;
-    const { quantity } = this.state;
-    // const { fontLoaded } = this.state;
-
+    let listProduct = this.state.listProduct;
+    let giaSize = listProduct && listProduct[0] && listProduct[0].price;
+    let sizeSML = this.state.sizeSML;
+    console.log("Giá size : ", giaSize);
+    const quantity = this.state.quantity;
+    if (listProduct[0]) {
+      console.log(listProduct[0].detail);
+    }
+    console.log(this.props.reduxState);
     return (
       <>
-        <ScrollView style={{ backgroundColor: "#000" }}>
-          <SafeAreaView>
-            <ImageBackground
-              source={ImageCoffee}
-              style={styles.imgbg}
-              imageStyle={{
-                borderRadius: 10 * 3,
-              }}
-            >
-              <View style={styles.viewhd}>
-                <TouchableOpacity
-                  style={styles.buttonhd}
-                  onPress={() => this.quayLai()}
-                >
-                  <Ionicons
-                    name="return-up-back"
-                    color={colors["white-smoke"]}
-                    size={10 * 2.5}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.buttonhd}>
-                  <Ionicons
-                    name="cart"
-                    color={colors["white-smoke"]}
-                    size={10 * 2.5}
-                  />
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.viewbt}>
-                <BlurView intensity={80} tint="dark" style={styles.blurview}>
-                  <View>
-                    <Text style={styles.nametext}>Cà Phê Chòi</Text>
-                    <Text style={styles.inclutext}>15.000 VND</Text>
-                  </View>
-                </BlurView>
-              </View>
-            </ImageBackground>
-
-            <View style={styles.viewbd}>
-              <Text style={styles.destext}>Mô Tả</Text>
-              <Text numberOfLines={3} style={styles.desc}>
-                Cafe chòi là nơi uống cà phê tâm sự cho cặp đôi là những chòi lá
-                nhỏ nhỏ, xinh xinh, kín mít không ai có thể biết bên trong chòi
-                cặp đôi đang làm chuyện gì cả.
-              </Text>
-              <View style={styles.viewsize}>
-                <Text style={styles.sizetext}>Size</Text>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
+        {listProduct && listProduct[0] && (
+          <>
+            <ScrollView style={{ backgroundColor: "#000" }}>
+              <SafeAreaView>
+                <ImageBackground
+                  source={{
+                    uri: `http://192.168.1.5:8081/image/${listProduct[0].images}`,
+                  }}
+                  style={styles.imgbg}
+                  imageStyle={{
+                    borderRadius: 10 * 3,
                   }}
                 >
-                  <TouchableOpacity
-                    style={
-                      this.state.trangthai == 1
-                        ? styles.activeSize
-                        : styles.buttonsize
-                    }
-                    onPress={() => this.handleaction(1)}
-                  >
-                    <Text
-                      style={[
-                        this.state.trangthai == 1
-                          ? styles.activeText
-                          : styles.fonetext,
-                      ]}
+                  <View style={styles.viewhd}>
+                    <TouchableOpacity
+                      style={styles.buttonhd}
+                      onPress={() => this.quayLai()}
                     >
-                      S
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={
-                      this.state.trangthai == 2
-                        ? styles.activeSize
-                        : styles.buttonsize
-                    }
-                    onPress={() => this.handleaction(2)}
-                  >
-                    <Text
-                      style={[
-                        this.state.trangthai == 2
-                          ? styles.activeText
-                          : styles.fonetext,
-                      ]}
+                      <Ionicons
+                        name="return-up-back"
+                        color={colors["white-smoke"]}
+                        size={10 * 2.5}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.buttonhd}
+                      onPress={() => this.props.navigation.push("CART")}
                     >
-                      M
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={
-                      this.state.trangthai == 3
-                        ? styles.activeSize
-                        : styles.buttonsize
-                    }
-                    onPress={() => this.handleaction(3)}
-                  >
-                    <Text
-                      style={[
-                        this.state.trangthai == 3
-                          ? styles.activeText
-                          : styles.fonetext,
-                      ]}
-                    >
-                      L
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-              {/* SỐ LƯỢNG */}
-              <Text style={styles.sizetext}>Số Lượng</Text>
-              <View style={styles.container}>
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={this.handleDecrement}
-                >
-                  <Text style={styles.buttonText}>-</Text>
-                </TouchableOpacity>
-                <Text style={styles.quantity}>{quantity}</Text>
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={this.handleIncrement}
-                >
-                  <Text style={styles.buttonText}>+</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </SafeAreaView>
-        </ScrollView>
+                      <Ionicons
+                        name="cart"
+                        color={colors["white-smoke"]}
+                        size={10 * 2.5}
+                      />
+                    </TouchableOpacity>
+                  </View>
 
-        <SafeAreaView style={styles.safefoot}>
-          <View style={styles.viewgh}>
-            <TouchableOpacity>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <FontAwesome5
-                  name="cart-plus"
-                  color={colors["white-smoke"]}
-                  size={10 * 2}
-                />
+                  <View style={styles.viewbt}>
+                    <BlurView
+                      intensity={80}
+                      tint="dark"
+                      style={styles.blurview}
+                    >
+                      <View>
+                        <Text style={styles.nametext}>
+                          {listProduct[0].name}
+                        </Text>
+                        <Text style={styles.inclutext}>
+                          {listProduct[0].price + sizeSML} đ
+                        </Text>
+                      </View>
+                    </BlurView>
+                  </View>
+                </ImageBackground>
+
+                <View style={styles.viewbd}>
+                  <Text style={styles.destext}>Mô Tả</Text>
+                  <Text numberOfLines={3} style={styles.desc}>
+                    {listProduct[0].detail}
+                  </Text>
+                  <View style={styles.viewsize}>
+                    <Text style={styles.sizetext}>Size</Text>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <TouchableOpacity
+                        style={
+                          this.state.trangthai == 1
+                            ? styles.activeSize
+                            : styles.buttonsize
+                        }
+                        onPress={() => this.chonSize(360, giaSize + 0, 0, 1)}
+                      >
+                        <Text
+                          style={[
+                            this.state.trangthai == 1
+                              ? styles.activeText
+                              : styles.fonetext,
+                          ]}
+                        >
+                          S
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={
+                          this.state.trangthai == 2
+                            ? styles.activeSize
+                            : styles.buttonsize
+                        }
+                        onPress={() =>
+                          this.chonSize(500, giaSize + 5000, 5000, 2)
+                        }
+                      >
+                        <Text
+                          style={[
+                            this.state.trangthai == 2
+                              ? styles.activeText
+                              : styles.fonetext,
+                          ]}
+                        >
+                          M
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={
+                          this.state.trangthai == 3
+                            ? styles.activeSize
+                            : styles.buttonsize
+                        }
+                        onPress={() =>
+                          this.chonSize(700, giaSize + 10000, 10000, 3)
+                        }
+                      >
+                        <Text
+                          style={[
+                            this.state.trangthai == 3
+                              ? styles.activeText
+                              : styles.fonetext,
+                          ]}
+                        >
+                          L
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  {/* SỐ LƯỢNG */}
+                  <Text style={styles.sizetext}>Số Lượng</Text>
+                  <View style={styles.container}>
+                    <TouchableOpacity
+                      style={styles.button_size}
+                      onPress={this.handleDecrement}
+                    >
+                      <Text style={styles.buttonText}>-</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.quantity}>{quantity}</Text>
+                    <TouchableOpacity
+                      style={styles.button_size}
+                      onPress={this.handleIncrement}
+                    >
+                      <Text style={styles.buttonText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </SafeAreaView>
+            </ScrollView>
+            <SafeAreaView style={styles.safefoot}>
+              <View style={styles.cart_view}>
+                <TouchableOpacity
+                  style={{ flexDirection: "row" }}
+                  onPress={() => this.handleAddGioHang()}
+                >
+                  <FontAwesome5
+                    name="cart-plus"
+                    color={colors["white-smoke"]}
+                    size={10 * 3.2}
+                  />
+                  <Text style={styles.cart_text}>Giỏ hàng</Text>
+                </TouchableOpacity>
               </View>
-              <Text style={{ color: colors.white, fontSize: 10 * 2 }}>
-                Giỏ Hàng
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity
-            style={{
-              marginRight: 10,
-              backgroundColor: colors.primary,
-              width: width / 2.15 + 10 * 0.1,
-              justifyContent: "center",
-              alignItems: "center",
-              borderRadius: 10 * 2,
-              height: 65,
-            }}
-          >
-            <Text
-              style={{
-                color: colors.white,
-                fontSize: 10 * 2,
-                fontWeight: "700",
-              }}
-            >
-              Buy Now
-            </Text>
-          </TouchableOpacity>
-        </SafeAreaView>
+              <TouchableOpacity style={styles.buy_view}>
+                <Text style={styles.buy_text}>Mua ngay</Text>
+              </TouchableOpacity>
+            </SafeAreaView>
+          </>
+        )}
       </>
     );
   }
 }
+
+const mapStateToProps = (state) => {
+  return {
+    reduxState: state,
+  };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    product: (id_product) =>
+      dispatch({ type: "id_product", payload: id_product }),
+    arrGioHang: (arrGioHang) =>
+      dispatch({ type: "arrCart", payload: arrGioHang }),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(DetailProduct);
+
 const styles = StyleSheet.create({
   imgbg: {
     height: height / 2.5 + 10 * 2,
@@ -299,6 +342,7 @@ const styles = StyleSheet.create({
     position: "relative",
     top: -12,
   },
+
   viewbt: {
     borderRadius: 10 * 3,
     overflow: "hidden",
@@ -318,7 +362,7 @@ const styles = StyleSheet.create({
     fontSize: 10 * 1.8,
     color: colors["white-smoke"],
     fontWeight: "500",
-    marginBottom: 10,
+    marginBottom: 12,
   },
   viewbd: {
     padding: 10,
@@ -331,6 +375,7 @@ const styles = StyleSheet.create({
   },
   desc: {
     color: colors.white,
+    fontSize: 16,
     marginBottom: 10,
   },
   viewsize: {
@@ -353,7 +398,7 @@ const styles = StyleSheet.create({
     color: colors["white-smoke"],
     fontSize: 10 * 1.7,
     marginTop: 10,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   buttonsize: {
     borderWidth: 2,
@@ -372,11 +417,33 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  viewgh: {
-    padding: 10,
+  cart_view: {
+    padding: 6,
     alignItems: "center",
     justifyContent: "center",
-    paddingLeft: 10 * 5,
+    paddingLeft: 10 * 3.6,
+    paddingBottom: -24,
+  },
+  buy_view: {
+    marginRight: 12,
+    backgroundColor: colors.primary,
+    width: 160,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 16,
+    height: 50,
+  },
+  cart_text: {
+    color: colors.white,
+    fontSize: 10 * 1.8,
+    fontWeight: "500",
+    marginLeft: 6,
+    marginTop: 4,
+  },
+  buy_text: {
+    color: colors.white,
+    fontSize: 10 * 2,
+    fontWeight: "600",
   },
   container: {
     flexDirection: "row",
@@ -390,10 +457,10 @@ const styles = StyleSheet.create({
     height: 50,
     borderWidth: 0,
   },
-  button: {
-    backgroundColor: "#ccc",
-    width: 35,
-    height: 35,
+  button_size: {
+    backgroundColor: colors["dark-light"],
+    width: 32,
+    height: 32,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 8,

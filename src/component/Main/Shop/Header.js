@@ -1,133 +1,22 @@
 import React, { Component } from "react";
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  Dimensions,
-  Image,
-} from "react-native";
-import icMenu from "../../../public/appIcon/ic_menu.png";
-import icLogo from "../../../public/appIcon/icon_coffee.png";
-import { TextInput } from "react-native-gesture-handler";
-import axios from "axios";
-
-import colors from "../Shop/Store/colors";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { BlurView } from "expo-blur";
-import { Ionicons } from "@expo/vector-icons";
-
-import Cart from "./Cart/Cart";
-
-const windowHeight = Dimensions.get("window").height;
-
-import global from "../../../global/global";
+import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 export default class Header extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      textSearch: "",
-    };
-  }
-
-  onpenMenu = () => {
-    this.props.open();
-  };
-
-  onSearch = async () => {
-    //console.log('Phong');
-    let data = { name: 1 };
-    let res = await axios.post("http://192.168.138.6:8081/api/v1/search", {
-      name: this.state.textSearch,
-    });
-    console.log("Search: ", res.data);
-    global.setArrSearch(res.data.message);
-  };
-
   render() {
-    console.log(this.state.textSearch);
-    const { wrapper, row1, textInput, iconStyle, textStyle } = style;
     return (
-      <View style={wrapper}>
-        <View style={row1}>
-          <TouchableOpacity
-            style={{
-              borderRadius: 10,
-              overflow: "hidden",
-              width: 10 * 5,
-              height: 10 * 5,
-            }}
-            onPress={() => this.onpenMenu()}
-          >
-            {/* <Image source={icMenu} style={iconStyle}></Image> */}
-            <BlurView
-              style={{
-                height: "100%",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Ionicons
-                name="menu"
-                size={10 * 3}
-                color={colors["white-smoke"]}
-              />
+      <View style={styles.wrapper}>
+        <View style={styles.row1}>
+          <TouchableOpacity style={styles.cafeIconView}>
+            <BlurView style={styles.cafeICon}>
+              <Ionicons name="ios-cafe-sharp" size={10 * 3} color="#ccc" />
             </BlurView>
           </TouchableOpacity>
-          <Text style={textStyle}>Coffe Happy</Text>
+          {/* <Text style={styles.textStyle}>不 安 的 咖 啡</Text> */}
+          <Text style={styles.textStyle}>Cafe Happiness</Text>
           {/* <Image source={icLogo} style={iconStyle}></Image> */}
-          <BlurView
-            style={{
-              height: "100%",
-              padding: 10 / 2,
-              borderRadius: 10,
-              width: 10 * 5,
-              height: 10 * 5,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Ionicons
-              onPress={<Cart />}
-              name="cart"
-              color={colors["white-smoke"]}
-              size={10 * 3}
-            />
-          </BlurView>
-        </View>
-
-        <View
-          style={{
-            borderRadius: 10,
-            overflow: "hidden",
-          }}
-        >
-          <BlurView
-            intensity={30}
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <TextInput
-              style={{
-                width: "100%",
-                color: colors.white,
-                fontSize: 10 * 1.7,
-                padding: 10,
-                paddingLeft: 10 * 3.5,
-              }}
-              placeholder="Find Your Coffee..."
-              placeholderTextColor={colors.light}
-            />
-            <Ionicons
-              style={{
-                position: "absolute",
-                left: 10,
-              }}
-              name="search"
-              color={colors.light}
-              size={10 * 2}
-            />
+          <BlurView style={styles.homeIconView}>
+            <FontAwesome5 name="smile" color="#ccc" size={10 * 2.6} />
           </BlurView>
         </View>
       </View>
@@ -135,15 +24,42 @@ export default class Header extends Component {
   }
 }
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
   wrapper: {
-    height: windowHeight / 7,
+    overflow: "hidden",
     backgroundColor: "#000",
-    padding: 5,
-    justifyContent: "space-around",
+    padding: 10,
+    // marginBottom: 8,
   }, //
-  row1: { flexDirection: "row", justifyContent: "space-between" },
-  textInput: { height: windowHeight / 20, backgroundColor: "#ffffff" }, // marginTop: 10
-  iconStyle: { height: 30, width: 30 },
-  textStyle: { fontSize: 25, color: "#FF7F24", fontWeight: "600" },
+  row1: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  textStyle: {
+    fontSize: 25,
+    color: "#FF7F24",
+    fontWeight: "600",
+  },
+  cafeIconView: {
+    backgroundColor: "#000",
+    borderRadius: 10,
+    overflow: "hidden",
+    width: 10 * 4,
+    height: 10 * 4,
+  },
+  cafeICon: {
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  homeIconView: {
+    backgroundColor: "#000",
+    height: "100%",
+    padding: 10 / 2,
+    borderRadius: 10,
+    width: 10 * 4,
+    height: 10 * 4,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });

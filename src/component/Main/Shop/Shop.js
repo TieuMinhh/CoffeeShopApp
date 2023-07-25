@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Text, View, TouchableOpacity, Dimensions } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import Home from "./Home/Home";
-import Profile from "./Profile/Profile";
+import Contact from "./Contact/Contact";
 import Store from "./Store/Store";
 import Cart from "./Cart/Cart";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -28,14 +28,14 @@ export default class Shop extends Component {
         },
         console.log("setTabBarBadge global", setTabBarBadge)
       );
-      global.id_product = (id_product) => {
-        this.setState(
-          {
-            idproduct: id_product,
-          },
-          console.log(id_product)
-        );
-      };
+    global.id_product = (id_product) => {
+      this.setState(
+        {
+          idproduct: id_product,
+        },
+        console.log(id_product)
+      );
+    };
   }
   componentDidMount() {}
   onpenMenu = () => {
@@ -66,25 +66,25 @@ export default class Shop extends Component {
             tabBarIcon: ({ focused, color, size }) => {
               let iconName;
 
-              if (route.name === "Home") {
+              if (route.name === "Trang Chủ") {
                 iconName = focused ? "home" : "home";
               } else if (route.name === "Settings") {
                 iconName = focused ? "ios-list" : "ios-list-outline";
               }
 
-              if (route.name === "Store") {
+              if (route.name === "Sản Phẩm") {
                 iconName = focused ? "coffee" : "coffee";
               } else if (route.name === "Settings") {
                 iconName = focused ? "ios-list" : "ios-list-outline";
               }
 
-              if (route.name === "Cart") {
+              if (route.name === "Giỏ Hàng") {
                 iconName = focused ? "shopping-cart" : "shopping-cart";
               } else if (route.name === "Settings") {
                 iconName = focused ? "ios-list" : "ios-list-outline";
               }
 
-              if (route.name === "Trang Cá Nhân") {
+              if (route.name === "Cá Nhân") {
                 iconName = focused ? "user-alt" : "user-alt";
               } else if (route.name === "Settings") {
                 iconName = focused ? "ios-list" : "ios-list-outline";
@@ -95,18 +95,20 @@ export default class Shop extends Component {
               );
             },
             tabBarActiveTintColor: "#945305",
-            tabBarInactiveTintColor: "#000",
+            tabBarInactiveTintColor: "#222222",
             headerShown: false,
+            tabBarInactiveBackgroundColor: "#fff",
+            tabBarActiveBackgroundColor: "#ddd",
           })}
         >
-          <Tab.Screen name="Home" component={Home} />
-          <Tab.Screen name="Store" component={Store} />
+          <Tab.Screen name="Trang Chủ" component={Home} />
+          <Tab.Screen name="Sản Phẩm" component={Store} />
           <Tab.Screen
-            name="Cart"
+            name="Giỏ Hàng"
             component={Cart}
             options={{ tabBarBadge: setTabBarBadge }}
           />
-          <Tab.Screen name="Trang Cá Nhân" component={Profile} />
+          <Tab.Screen name="Cá Nhân" component={Contact} />
         </Tab.Navigator>
         {/* </NavigationContainer> */}
       </View>

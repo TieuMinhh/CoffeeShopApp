@@ -8,21 +8,18 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
-  ToastAndroid,
 } from "react-native";
 // import Input from "./Input";
-import { Ionicons } from "@expo/vector-icons";
 
 import userServices from "../api/userServices";
 import global from "../../global/global";
 import saveToken from "../../global/saveToken";
 import checkToken from "../../component/api/userServices";
 import { connect } from "react-redux";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import axios from "axios";
-import getToken from "../../global/getToken";
 
-class SignIn extends Component {
+class ForgotPassword extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -35,10 +32,6 @@ class SignIn extends Component {
     this.props.navigation.goBack();
   };
 
-  goBackHome = () => {
-    this.props.navigation.popToTop();
-  };
-
   onSignIn = async () => {
     console.log("Thử");
     const { email, password } = this.state;
@@ -49,23 +42,31 @@ class SignIn extends Component {
     data = await userServices.checkToken(data.userData);
     global.onSignIn(data);
     this.props.signIn(data);
-    console.log("Data bên signIn:", data);
-    //Cart
-    let token = await getToken();
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-    // this.props.setTabBarBadge()
-    let cart = await axios.post("http://192.168.1.5:8081/api/v1/account");
-    this.props.arrGioHang(cart.data.list);
-    //Cart
+    console.log(data);
     // this.props.diDenMain();
-    ToastAndroid.show("Đăng nhập thành công", ToastAndroid.LONG);
     this.props.reduxState.history.popToTop();
     // this.props.reduxState.history.push("MAIN");
   };
 
+  handleQuenMatKhau = async () => {
+    const { email } = this.state;
+    let res = await axios.post(
+      "http://192.168.1.5:8081/api/v1/forgot-password",
+      { email }
+    );
+    console.log(res.data);
+    if (res.data && res.data.errCode == 0) {
+      this.props.id_account(res.data.id_account);
+      this.props.reduxState.history.push("ENTER_OTP");
+    }
+  };
+
+  goBackHome = () => {
+    this.props.navigation.popToTop();
+  };
+
   render() {
-    const { email, password } = this.state;
+    const { email } = this.state;
     console.log("Thí props: ", this.props);
     return (
       <SafeAreaView style={styles.main}>
@@ -96,67 +97,32 @@ class SignIn extends Component {
           ></Image>
           <View style={styles.wFull}>
             <View style={styles.row}>
-              <Text style={styles.brandName}>Đăng Nhập</Text>
+              <Text style={styles.brandName}>Quên Mật Khẩu</Text>
             </View>
 
             <TextInput
               style={styles.input}
-              placeholder="Email"
+              placeholder="Mời Nhập Email"
               value={email}
               onChangeText={(text) => this.setState({ email: text })}
             ></TextInput>
-            <TextInput
+            {/* <TextInput
               secureTextEntry={true}
               style={styles.input}
               placeholder="Mật Khẩu"
               value={password}
               onChangeText={(text) => this.setState({ password: text })}
-            ></TextInput>
+            ></TextInput> */}
 
             <View style={styles.loginBtnWrapper}>
               <TouchableOpacity
-                // onPress={() => navigation.navigate()}
-                onPress={() => this.onSignIn()}
+                onPress={() => this.handleQuenMatKhau()}
                 activeOpacity={0.7}
                 style={styles.loginBtn}
               >
-                <Text style={styles.loginText}>Đăng Nhập</Text>
+                <Text style={styles.loginText}>Gửi Mã Xác Nhận</Text>
               </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              onPress={() =>
-                this.props.reduxState.history.push("FORGOT_PASSWORD")
-              }
-              style={styles.forgotPassBtn}
-            >
-              <Text style={styles.forgotPassText}>Quên Mật Khẩu?</Text>
-            </TouchableOpacity>
-
-            <View style={{ marginTop: 16 }}>
-              <Text style={styles.socialLogin}>Hoặc Đăng Nhập Bằng</Text>
-
-              <View style={styles.listLogoLogin}>
-                <TouchableOpacity style={styles.logoItem}>
-                  <Ionicons name="logo-google" color="#1F41BB" size={20} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.logoItem}>
-                  <Ionicons name="logo-facebook" color="#1F41BB" size={20} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.logoItem}>
-                  <Ionicons name="logo-github" color="#1F41BB" size={20} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}> Bạn Chưa Có Tài Khoản? </Text>
-            <TouchableOpacity
-              onPress={() => this.props.reduxState.history.push("SIGN_UP")}
-            >
-              <Text style={styles.signupBtn}>Đăng Ký</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>
@@ -177,11 +143,13 @@ const mapDispatchToProps = (dispatch) => {
     history: (history) => dispatch({ type: "history", payload: history }),
     arrGioHang: (arrGioHang) =>
       dispatch({ type: "arrCart", payload: arrGioHang }),
-    signIn: (signIn) => dispatch({ type: "signin", payload: signIn }),
+    signIn: (signIn) => dispatch({ type: "signIn", payload: signIn }),
+    id_account: (id_account) =>
+      dispatch({ type: "id_account", payload: id_account }),
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(SignIn);
+export default connect(mapStateToProps, mapDispatchToProps)(ForgotPassword);
 
 const styles = StyleSheet.create({
   main: {

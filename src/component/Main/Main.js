@@ -6,12 +6,16 @@ import Drawer from 'react-native-drawer';
 import global from '../../global/global';
 import getToken from '../../global/getToken'
 import { checkToken } from '../api/userServices'
-export default class Main extends Component {
+import SignUp from '../Authentication/SignUp';
+import { connect } from 'react-redux';
+
+class Main extends Component {
     constructor(props) {
         super(props);
     }
 
     async componentDidMount() {
+        this.props.history(this.props.navigation)
         console.log('Props component:', this.props);
         let token = await getToken()
         console.log('token Phong va value: ', token);
@@ -32,10 +36,10 @@ export default class Main extends Component {
 
         return (
             <Drawer
-                ref={(ref) => this.drawer = ref}
-                content={<Menu navigation={navigation} />}
-                openDrawerOffset={0.5}//mở menu 0.4 màn hình
-                tapToClose={true}//bấm để ẩn menu
+            // ref={(ref) => this.drawer = ref}
+            // content={<Menu navigation={navigation} />}
+            // openDrawerOffset={0.5}//mở menu 0.4 màn hình
+            // tapToClose={true}//bấm để ẩn menu
             >
                 {/* Home
                 Cart
@@ -47,3 +51,22 @@ export default class Main extends Component {
     }
 
 }
+
+const mapStateToProps = (state) => {
+    return {
+        reduxState: state,
+    };
+};
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        product: (id_product) =>
+            dispatch({ type: "id_product", payload: id_product }),
+        history: (history) =>
+            dispatch({ type: "history", payload: history }),
+        arrGioHang: (arrGioHang) =>
+            dispatch({ type: "arrCart", payload: arrGioHang })
+    };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Main);

@@ -11,8 +11,9 @@ import Imageprofile from "../../public/temp/profile.png";
 import global from "../../global/global";
 import getToken from "../../global/getToken";
 import { CommonActions } from "@react-navigation/native";
+import { connect } from "react-redux";
 
-export default class Menu extends Component {
+class Menu extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -35,6 +36,7 @@ export default class Menu extends Component {
     console.log("token1:", token);
     console.log("token2:", token1);
     this.setState({ user: null });
+    this.props.arrGioHang([]);
     this.props.navigation.dispatch(
       CommonActions.reset({
         index: 1,
@@ -56,6 +58,9 @@ export default class Menu extends Component {
     this.props.navigation.push("ORDER_HISTORY");
   };
   gotoAuthentication = () => {
+    if (this.props.navigation) {
+      this.props.history(this.props.navigation);
+    }
     this.props.navigation.push("AUTHENTICATION");
   };
 
@@ -106,7 +111,7 @@ export default class Menu extends Component {
     return (
       <View style={container}>
         <Image
-          source={{ uri: `http://192.168.138.6:8081/image/${image}` }}
+          source={{ uri: `http://192.168.1.5:8081/image/${image}` }}
           style={profile}
         />
 
@@ -116,6 +121,24 @@ export default class Menu extends Component {
   }
 }
 
+const mapStateToProps = (state) => {
+  return {
+    reduxState: state,
+  };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    product: (id_product) =>
+      dispatch({ type: "id_product", payload: id_product }),
+    history: (history) => dispatch({ type: "history", payload: history }),
+    arrGioHang: (arrGioHang) =>
+      dispatch({ type: "arrCart", payload: arrGioHang }),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Menu);
+
 const styles = StyleSheet.create({
   container: { backgroundColor: "#02be6e", flex: 1, alignItems: "center" },
   profile: {
@@ -123,6 +146,7 @@ const styles = StyleSheet.create({
     width: 150,
     borderRadius: 75,
   },
+
   btnStyle: {
     height: 50,
     backgroundColor: "#fff",
